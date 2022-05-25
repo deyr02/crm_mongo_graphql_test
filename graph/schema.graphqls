@@ -1,0 +1,45 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+
+
+type Customer{
+  	id: ID! 				
+    cid: String! 
+    customer_code: String! 
+    address1: String! 
+    address2: String! 
+    address3: String! 
+    address4: String! 
+    country_code: String! 
+    post_code: String! 
+    web_address: String! 
+    email_address: String! 	
+    phone_no1: String! 
+    phone_no2: String! 
+}
+
+input NewCustomer{ 				
+    cid: String! 
+    customer_code: String! 
+    customer_name: String! 
+    address1: String! 
+    address2: String! 
+    address3: String! 
+    address4: String! 
+    country_code: String! 
+    post_code: String! 
+    web_address: String! 
+    email_address: String! 	
+    phone_no1: String! 
+    phone_no2: String! 
+}
+
+type Query{
+  customers: [Customer!]!
+}
+
+type Mutation{
+  createCustomer(input: NewCustomer!): Customer!
+}
