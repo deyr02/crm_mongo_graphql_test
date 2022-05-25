@@ -5,18 +5,39 @@ package graph
 
 import (
 	"context"
-	"fmt"
+	"math/rand"
+	"strconv"
 
 	"github.com/deyr02/crm_mongo_graphql/graph/generated"
 	"github.com/deyr02/crm_mongo_graphql/graph/model"
+	"github.com/deyr02/crm_mongo_graphql/repository"
 )
 
+var customerRepo repository.CustomerRepository = repository.New()
+
 func (r *mutationResolver) CreateCustomer(ctx context.Context, input model.NewCustomer) (*model.Customer, error) {
-	panic(fmt.Errorf("not implemented"))
+	cus := &model.Customer{
+		ID:           strconv.Itoa(rand.Int()),
+		Cid:          input.Cid,
+		CustomerCode: input.CustomerCode,
+		Address1:     input.Address1,
+		Address2:     input.Address2,
+		Address3:     input.Address3,
+		Address4:     input.Address4,
+		CountryCode:  input.CountryCode,
+		PostCode:     input.PostCode,
+		WebAddress:   input.WebAddress,
+		EmailAddress: input.EmailAddress,
+		PhoneNo1:     input.PhoneNo1,
+		PhoneNo2:     input.PhoneNo2,
+	}
+	customerRepo.Save(cus)
+	return cus, nil
+
 }
 
 func (r *queryResolver) Customers(ctx context.Context) ([]*model.Customer, error) {
-	panic(fmt.Errorf("not implemented"))
+	return customerRepo.FindAll(), nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
