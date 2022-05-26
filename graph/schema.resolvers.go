@@ -27,8 +27,8 @@ func (r *mutationResolver) CreateTable(ctx context.Context, input model.NewTable
 			MaxValue:     element.MaxValue,
 			MinValue:     element.MinValue,
 			DefaultValue: element.DefaultValue,
-			IsRequired:   false,
-			Visibility:   false,
+			IsRequired:   element.IsRequired,
+			Visibility:   element.Visibility,
 		}
 
 		customFields = append(customFields, ele)
@@ -41,6 +41,10 @@ func (r *mutationResolver) CreateTable(ctx context.Context, input model.NewTable
 
 	tableRepo.Save(tab)
 	return tab, nil
+}
+
+func (r *queryResolver) Table(ctx context.Context, id string) (*model.Table, error) {
+	return tableRepo.FindTableById(id), nil
 }
 
 func (r *queryResolver) Tables(ctx context.Context) ([]*model.Table, error) {

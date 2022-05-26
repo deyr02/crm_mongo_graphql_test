@@ -10,7 +10,7 @@ type CustomField{
 	Value: String!
   MaxValue: Int!
   MinValue: Int!
-  DefaultValue: String
+  DefaultValue: String!
   IsRequired: Boolean!
   Visibility: Boolean!
 }
@@ -21,9 +21,9 @@ input NewCustomField{
 	Value: String!
    MaxValue: Int!
   MinValue: Int!
-  DefaultValue: String
-  IsRequired: Boolean
-  Visibility: Boolean
+  DefaultValue: String!
+  IsRequired: Boolean!
+  Visibility: Boolean!
 }
 
 type Table{
@@ -38,6 +38,7 @@ input NewTable{
 }
 
 type Query{
+  table(_id: String!): Table!
   tables: [Table!]!
 }
 

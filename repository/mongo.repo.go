@@ -15,6 +15,7 @@ import (
 type TableRepository interface {
 	Save(Customer *model.Table)
 	FindAll() []*model.Table
+	FindTableById(id string) *model.Table
 }
 
 const (
@@ -74,4 +75,30 @@ func (db *database) Save(table *model.Table) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func (db *database) FindTableById(id string) *model.Table {
+
+	collection := db.client.Database(DATABASE).Collection(COLLECTION)
+	cursor, err := collection.Find(context.TODO(), bson.D{})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer cursor.Close(context.TODO())
+	var result *model.Table
+	for cursor.Next(context.TODO()) {
+		var cus *model.Table
+		err := cursor.Decode(&cus)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if cus.TableID == id {
+			result = cus
+			break
+		}
+
+	}
+	return result
 }

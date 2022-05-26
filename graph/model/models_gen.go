@@ -3,26 +3,26 @@
 package model
 
 type CustomField struct {
-	FieldID      string  `json:"FieldID"`
-	FieldName    string  `json:"FieldName"`
-	DataType     string  `json:"DataType"`
-	Value        string  `json:"Value"`
-	MaxValue     int     `json:"MaxValue"`
-	MinValue     int     `json:"MinValue"`
-	DefaultValue *string `json:"DefaultValue"`
-	IsRequired   bool    `json:"IsRequired"`
-	Visibility   bool    `json:"Visibility"`
+	FieldID      string `json:"FieldID"`
+	FieldName    string `json:"FieldName"`
+	DataType     string `json:"DataType"`
+	Value        string `json:"Value"`
+	MaxValue     int    `json:"MaxValue"`
+	MinValue     int    `json:"MinValue"`
+	DefaultValue string `json:"DefaultValue"`
+	IsRequired   bool   `json:"IsRequired"`
+	Visibility   bool   `json:"Visibility"`
 }
 
 type NewCustomField struct {
-	FieldName    string  `json:"FieldName"`
-	DataType     string  `json:"DataType"`
-	Value        string  `json:"Value"`
-	MaxValue     int     `json:"MaxValue"`
-	MinValue     int     `json:"MinValue"`
-	DefaultValue *string `json:"DefaultValue"`
-	IsRequired   *bool   `json:"IsRequired"`
-	Visibility   *bool   `json:"Visibility"`
+	FieldName    string `json:"FieldName"`
+	DataType     string `json:"DataType"`
+	Value        string `json:"Value"`
+	MaxValue     int    `json:"MaxValue"`
+	MinValue     int    `json:"MinValue"`
+	DefaultValue string `json:"DefaultValue"`
+	IsRequired   bool   `json:"IsRequired"`
+	Visibility   bool   `json:"Visibility"`
 }
 
 type NewTable struct {
