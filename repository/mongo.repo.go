@@ -12,21 +12,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type CustomerRepository interface {
-	Save(Customer *model.Customer)
-	FindAll() []*model.Customer
+type TableRepository interface {
+	Save(Customer *model.Table)
+	FindAll() []*model.Table
 }
 
 const (
 	DATABASE   = "BNZL_CRM"
-	COLLECTION = "Customers"
+	COLLECTION = "Tables"
 )
 
 type database struct {
 	client *mongo.Client
 }
 
-func New() CustomerRepository {
+func New() TableRepository {
 	//mongodb+srv://USERNAME:PASSWORD@HOST:PORT
 	//MONGODB := os.Getenv("MONGODB")
 	clientOptions := options.Client().ApplyURI("mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.4.2")
@@ -46,7 +46,7 @@ func New() CustomerRepository {
 
 }
 
-func (db *database) FindAll() []*model.Customer {
+func (db *database) FindAll() []*model.Table {
 	collection := db.client.Database(DATABASE).Collection(COLLECTION)
 	cursor, err := collection.Find(context.TODO(), bson.D{})
 
@@ -55,9 +55,9 @@ func (db *database) FindAll() []*model.Customer {
 	}
 
 	defer cursor.Close(context.TODO())
-	var result []*model.Customer
+	var result []*model.Table
 	for cursor.Next(context.TODO()) {
-		var cus *model.Customer
+		var cus *model.Table
 		err := cursor.Decode(&cus)
 		if err != nil {
 			log.Fatal(err)
@@ -67,9 +67,9 @@ func (db *database) FindAll() []*model.Customer {
 	return result
 }
 
-func (db *database) Save(customer *model.Customer) {
+func (db *database) Save(table *model.Table) {
 	collection := db.client.Database(DATABASE).Collection(COLLECTION)
-	_, err := collection.InsertOne(context.TODO(), customer)
+	_, err := collection.InsertOne(context.TODO(), table)
 
 	if err != nil {
 		log.Fatal(err)

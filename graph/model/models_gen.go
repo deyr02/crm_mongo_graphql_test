@@ -2,34 +2,34 @@
 
 package model
 
-type Customer struct {
-	ID           string `json:"id"`
-	Cid          string `json:"cid"`
-	CustomerCode string `json:"customer_code"`
-	Address1     string `json:"address1"`
-	Address2     string `json:"address2"`
-	Address3     string `json:"address3"`
-	Address4     string `json:"address4"`
-	CountryCode  string `json:"country_code"`
-	PostCode     string `json:"post_code"`
-	WebAddress   string `json:"web_address"`
-	EmailAddress string `json:"email_address"`
-	PhoneNo1     string `json:"phone_no1"`
-	PhoneNo2     string `json:"phone_no2"`
+type CustomField struct {
+	FieldID      string  `json:"FieldID"`
+	FieldName    string  `json:"FieldName"`
+	DataType     string  `json:"DataType"`
+	Value        string  `json:"Value"`
+	MaxValue     int     `json:"MaxValue"`
+	MinValue     int     `json:"MinValue"`
+	DefaultValue *string `json:"DefaultValue"`
+	IsRequired   bool    `json:"IsRequired"`
+	Visibility   bool    `json:"Visibility"`
 }
 
-type NewCustomer struct {
-	Cid          string `json:"cid"`
-	CustomerCode string `json:"customer_code"`
-	CustomerName string `json:"customer_name"`
-	Address1     string `json:"address1"`
-	Address2     string `json:"address2"`
-	Address3     string `json:"address3"`
-	Address4     string `json:"address4"`
-	CountryCode  string `json:"country_code"`
-	PostCode     string `json:"post_code"`
-	WebAddress   string `json:"web_address"`
-	EmailAddress string `json:"email_address"`
-	PhoneNo1     string `json:"phone_no1"`
-	PhoneNo2     string `json:"phone_no2"`
+type NewCustomField struct {
+	FieldName    string  `json:"FieldName"`
+	DataType     string  `json:"DataType"`
+	Value        string  `json:"Value"`
+	MaxValue     int     `json:"MaxValue"`
+	MinValue     int     `json:"MinValue"`
+	DefaultValue *string `json:"DefaultValue"`
+	IsRequired   *bool   `json:"IsRequired"`
+	Visibility   *bool   `json:"Visibility"`
+}
+
+type NewTable struct {
+	Fields []*NewCustomField `json:"Fields"`
+}
+
+type Table struct {
+	TableID string         `json:"TableID"`
+	Fields  []*CustomField `json:"Fields"`
 }

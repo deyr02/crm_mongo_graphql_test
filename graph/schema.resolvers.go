@@ -13,31 +13,38 @@ import (
 	"github.com/deyr02/crm_mongo_graphql/repository"
 )
 
-var customerRepo repository.CustomerRepository = repository.New()
+var tableRepo repository.TableRepository = repository.New()
 
-func (r *mutationResolver) CreateCustomer(ctx context.Context, input model.NewCustomer) (*model.Customer, error) {
-	cus := &model.Customer{
-		ID:           strconv.Itoa(rand.Int()),
-		Cid:          input.Cid,
-		CustomerCode: input.CustomerCode,
-		Address1:     input.Address1,
-		Address2:     input.Address2,
-		Address3:     input.Address3,
-		Address4:     input.Address4,
-		CountryCode:  input.CountryCode,
-		PostCode:     input.PostCode,
-		WebAddress:   input.WebAddress,
-		EmailAddress: input.EmailAddress,
-		PhoneNo1:     input.PhoneNo1,
-		PhoneNo2:     input.PhoneNo2,
+func (r *mutationResolver) CreateTable(ctx context.Context, input model.NewTable) (*model.Table, error) {
+	var customFields []*model.CustomField
+
+	for _, element := range input.Fields {
+		ele := &model.CustomField{
+			FieldID:      strconv.Itoa(rand.Int()),
+			FieldName:    element.FieldName,
+			DataType:     element.DataType,
+			Value:        element.Value,
+			MaxValue:     element.MaxValue,
+			MinValue:     element.MinValue,
+			DefaultValue: element.DefaultValue,
+			IsRequired:   false,
+			Visibility:   false,
+		}
+
+		customFields = append(customFields, ele)
 	}
-	customerRepo.Save(cus)
-	return cus, nil
 
+	tab := &model.Table{
+		TableID: strconv.Itoa(rand.Int()),
+		Fields:  customFields,
+	}
+
+	tableRepo.Save(tab)
+	return tab, nil
 }
 
-func (r *queryResolver) Customers(ctx context.Context) ([]*model.Customer, error) {
-	return customerRepo.FindAll(), nil
+func (r *queryResolver) Tables(ctx context.Context) ([]*model.Table, error) {
+	return tableRepo.FindAll(), nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

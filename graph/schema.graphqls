@@ -3,43 +3,45 @@
 # https://gqlgen.com/getting-started/
 
 
-
-type Customer{
-  	id: ID! 				
-    cid: String! 
-    customer_code: String! 
-    address1: String! 
-    address2: String! 
-    address3: String! 
-    address4: String! 
-    country_code: String! 
-    post_code: String! 
-    web_address: String! 
-    email_address: String! 	
-    phone_no1: String! 
-    phone_no2: String! 
+type CustomField{
+  FieldID: ID!
+  FieldName: String!
+	DataType: String!
+	Value: String!
+  MaxValue: Int!
+  MinValue: Int!
+  DefaultValue: String
+  IsRequired: Boolean!
+  Visibility: Boolean!
 }
 
-input NewCustomer{ 				
-    cid: String! 
-    customer_code: String! 
-    customer_name: String! 
-    address1: String! 
-    address2: String! 
-    address3: String! 
-    address4: String! 
-    country_code: String! 
-    post_code: String! 
-    web_address: String! 
-    email_address: String! 	
-    phone_no1: String! 
-    phone_no2: String! 
+input NewCustomField{
+  FieldName: String!
+  DataType: String!
+	Value: String!
+   MaxValue: Int!
+  MinValue: Int!
+  DefaultValue: String
+  IsRequired: Boolean
+  Visibility: Boolean
+}
+
+type Table{
+  	TableID: ID! 				
+    Fields: [CustomField!]
+   
+}
+
+input NewTable{ 				
+    Fields: [NewCustomField!]
+
 }
 
 type Query{
-  customers: [Customer!]!
+  tables: [Table!]!
 }
 
 type Mutation{
-  createCustomer(input: NewCustomer!): Customer!
+  createTable(input: NewTable!): Table!
+
 }
