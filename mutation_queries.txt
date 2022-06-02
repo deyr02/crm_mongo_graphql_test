@@ -1,0 +1,189 @@
+AddTable:
+
+
+mutation AddTable{
+ createTable(input:{
+  
+  TableName: "Table1"
+  Fields:[
+    {
+      FieldName: "FirstName",
+      DataType: "String",
+      DefaultValue: "None",
+      MaxValue: 10,
+      MinValue: 1,
+      IsRequired: false,
+      Visibility: false,
+    	Value:"" 
+    },
+     {
+      FieldName: "LastName",
+      DataType: "String",
+      DefaultValue: "None",
+      MaxValue: 10,
+      MinValue: 1,
+      IsRequired: false,
+      Visibility: false,
+    	Value:"" 
+    }
+  ]
+})
+  {
+  	TableID
+    TableName
+    Fields{
+       FieldID
+      FieldName
+      DataType
+      DefaultValue
+      MaxValue
+      MinValue
+      IsRequired
+      Visibility
+    }
+  }
+  
+}
+
+
+
+Tables:
+
+query findbyID{
+  tables  {
+    TableID
+    TableName
+    Fields {
+      FieldID
+      FieldName
+      DataType
+      DefaultValue
+      MaxValue
+      MinValue
+      IsRequired
+      Visibility
+    }
+   
+  }
+}
+
+
+Table: 
+
+query Table{
+  table(_id: "3916589616287113937"){
+    TableID
+    TableName
+    Fields {
+      FieldID
+      FieldName
+      DataType
+      DefaultValue
+      MaxValue
+      MinValue
+      IsRequired
+      Visibility
+    }
+   
+  }
+}
+
+
+Delete Table:
+
+mutation deleteTable{
+  DeleteTable(_id:"3916589616287113937"){
+    TableID
+    TableName
+     Fields {
+      FieldID
+      FieldName
+      DataType
+      DefaultValue
+      MaxValue
+      MinValue
+      IsRequired
+      Visibility
+    }
+}
+}
+
+
+Add Column: 
+
+mutation addColumn{
+  addColumn(_id:"3916589616287113937",input:{
+    
+   
+            FieldName: "lastName3",
+            DataType: "String",
+            DefaultValue: "None",
+            MaxValue: 10,
+            MinValue: 1,
+            IsRequired: false,
+            Visibility: false,
+    Value:""
+  }) {
+    TableID
+    TableName
+    Fields {
+			FieldID
+      FieldName
+      DataType
+      MinValue
+      DefaultValue
+    }
+  
+    
+}
+}
+
+
+Modify Column:
+
+mutation modifyCoulmn{
+  ModifyColumn(_tableid:"894385949183117216", _columnid:"605394647632969758", _CustomField:{
+     FieldName: "FirstNameedited",
+      DataType: "String",
+      DefaultValue: "None",
+      MaxValue: 10,
+      MinValue: 1,
+      IsRequired: false,
+      Visibility: false,
+    	Value:"" 
+  }){
+    TableID
+    TableName
+    Fields {
+      FieldID
+      FieldName
+      DataType
+      DefaultValue
+      MaxValue
+      MinValue
+      IsRequired
+      Visibility
+    }
+  }
+}
+
+
+
+Delete Column:
+
+mutation DeleteColumn{
+  DeleteColumn(_tableid:"894385949183117216", _columnid:"6334824724549167320"){
+     TableID
+    TableName
+     Fields {
+      FieldID
+      FieldName
+      DataType
+      DefaultValue
+      MaxValue
+      MinValue
+      IsRequired
+      Visibility
+    }
+  }
+}
