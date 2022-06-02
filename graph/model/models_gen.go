@@ -26,10 +26,12 @@ type NewCustomField struct {
 }
 
 type NewTable struct {
-	Fields []*NewCustomField `json:"Fields"`
+	TableName string            `json:"TableName"`
+	Fields    []*NewCustomField `json:"Fields"`
 }
 
 type Table struct {
-	TableID string         `json:"TableID"`
-	Fields  []*CustomField `json:"Fields"`
+	TableID   string         `json:"TableID"`
+	TableName string         `json:"TableName"`
+	Fields    []*CustomField `json:"Fields"`
 }

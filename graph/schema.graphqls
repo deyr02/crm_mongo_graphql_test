@@ -27,12 +27,14 @@ input NewCustomField{
 }
 
 type Table{
-  	TableID: ID! 				
+  	TableID: ID! 	
+    TableName: String!			
     Fields: [CustomField!]
    
 }
 
-input NewTable{ 				
+input NewTable{ 
+    TableName: String!				
     Fields: [NewCustomField!]
 
 }
@@ -44,5 +46,8 @@ type Query{
 
 type Mutation{
   createTable(input: NewTable!): Table!
-
+  DeleteTable(_id: String!):Table!
+  addColumn(_id:String!, input:NewCustomField!): Table!
+  DeleteColumn(_tableid: String!, _columnid:String!): Table!
+  ModifyColumn(_tableid: String!, _columnid: String!, input:NewCustomField!): Table!
 }

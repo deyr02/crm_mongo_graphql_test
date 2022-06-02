@@ -15,6 +15,31 @@ import (
 
 var tableRepo repository.TableRepository = repository.New()
 
+func (r *mutationResolver) AddColumn(ctx context.Context, id string, input model.NewCustomField) (*model.Table, error) {
+	column := &model.CustomField{
+		FieldID:      strconv.Itoa(rand.Int()),
+		FieldName:    input.FieldName,
+		DataType:     input.DataType,
+		Value:        input.Value,
+		MaxValue:     input.MaxValue,
+		MinValue:     input.MinValue,
+		DefaultValue: input.DefaultValue,
+		IsRequired:   input.IsRequired,
+		Visibility:   input.Visibility,
+	}
+	return tableRepo.AddColumn(id, column), nil
+
+}
+
+func (r *mutationResolver) ModifyColumn(ctx context.Context, tableid string, columnid string, input model.NewCustomField) (*model.Table, error) {
+	return tableRepo.ModifyTableColumn(tableid, columnid, &input), nil
+
+}
+
+func (r *mutationResolver) DeleteColumn(ctx context.Context, tableid string, columnid string) (*model.Table, error) {
+	return tableRepo.DeleteTableColumn(tableid, columnid), nil
+}
+
 func (r *mutationResolver) CreateTable(ctx context.Context, input model.NewTable) (*model.Table, error) {
 	var customFields []*model.CustomField
 
@@ -35,12 +60,17 @@ func (r *mutationResolver) CreateTable(ctx context.Context, input model.NewTable
 	}
 
 	tab := &model.Table{
-		TableID: strconv.Itoa(rand.Int()),
-		Fields:  customFields,
+		TableID:   strconv.Itoa(rand.Int()),
+		TableName: input.TableName,
+		Fields:    customFields,
 	}
 
 	tableRepo.Save(tab)
 	return tab, nil
+}
+
+func (r *mutationResolver) DeleteTable(ctx context.Context, id string) (*model.Table, error) {
+	return tableRepo.DeleteTable(id), nil
 }
 
 func (r *queryResolver) Table(ctx context.Context, id string) (*model.Table, error) {

@@ -57,7 +57,11 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateTable func(childComplexity int, input model.NewTable) int
+		AddColumn    func(childComplexity int, id string, input model.NewCustomField) int
+		CreateTable  func(childComplexity int, input model.NewTable) int
+		DeleteColumn func(childComplexity int, tableid string, columnid string) int
+		DeleteTable  func(childComplexity int, id string) int
+		ModifyColumn func(childComplexity int, tableid string, columnid string, customField model.NewCustomField) int
 	}
 
 	Query struct {
@@ -66,13 +70,18 @@ type ComplexityRoot struct {
 	}
 
 	Table struct {
-		Fields  func(childComplexity int) int
-		TableID func(childComplexity int) int
+		Fields    func(childComplexity int) int
+		TableID   func(childComplexity int) int
+		TableName func(childComplexity int) int
 	}
 }
 
 type MutationResolver interface {
 	CreateTable(ctx context.Context, input model.NewTable) (*model.Table, error)
+	DeleteTable(ctx context.Context, id string) (*model.Table, error)
+	AddColumn(ctx context.Context, id string, input model.NewCustomField) (*model.Table, error)
+	DeleteColumn(ctx context.Context, tableid string, columnid string) (*model.Table, error)
+	ModifyColumn(ctx context.Context, tableid string, columnid string, customField model.NewCustomField) (*model.Table, error)
 }
 type QueryResolver interface {
 	Table(ctx context.Context, id string) (*model.Table, error)
@@ -157,6 +166,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CustomField.Visibility(childComplexity), true
 
+	case "Mutation.addColumn":
+		if e.complexity.Mutation.AddColumn == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addColumn_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddColumn(childComplexity, args["_id"].(string), args["input"].(model.NewCustomField)), true
+
 	case "Mutation.createTable":
 		if e.complexity.Mutation.CreateTable == nil {
 			break
@@ -168,6 +189,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateTable(childComplexity, args["input"].(model.NewTable)), true
+
+	case "Mutation.DeleteColumn":
+		if e.complexity.Mutation.DeleteColumn == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_DeleteColumn_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteColumn(childComplexity, args["_tableid"].(string), args["_columnid"].(string)), true
+
+	case "Mutation.DeleteTable":
+		if e.complexity.Mutation.DeleteTable == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_DeleteTable_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteTable(childComplexity, args["_id"].(string)), true
+
+	case "Mutation.ModifyColumn":
+		if e.complexity.Mutation.ModifyColumn == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_ModifyColumn_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ModifyColumn(childComplexity, args["_tableid"].(string), args["_columnid"].(string), args["_CustomField"].(model.NewCustomField)), true
 
 	case "Query.table":
 		if e.complexity.Query.Table == nil {
@@ -201,6 +258,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Table.TableID(childComplexity), true
+
+	case "Table.TableName":
+		if e.complexity.Table.TableName == nil {
+			break
+		}
+
+		return e.complexity.Table.TableName(childComplexity), true
 
 	}
 	return 0, false
@@ -301,12 +365,14 @@ input NewCustomField{
 }
 
 type Table{
-  	TableID: ID! 				
+  	TableID: ID! 	
+    TableName: String!			
     Fields: [CustomField!]
    
 }
 
-input NewTable{ 				
+input NewTable{ 
+    TableName: String!				
     Fields: [NewCustomField!]
 
 }
@@ -318,7 +384,10 @@ type Query{
 
 type Mutation{
   createTable(input: NewTable!): Table!
-
+  DeleteTable(_id: String!):Table!
+  addColumn(_id:String!, input:NewCustomField!): Table!
+  DeleteColumn(_tableid: String!, _columnid:String!): Table!
+  ModifyColumn(_tableid: String!, _columnid: String!, _CustomField:NewCustomField!): Table!
 }
 `, BuiltIn: false},
 }
@@ -327,6 +396,102 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_DeleteColumn_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["_tableid"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_tableid"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["_tableid"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["_columnid"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_columnid"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["_columnid"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_DeleteTable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_ModifyColumn_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["_tableid"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_tableid"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["_tableid"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["_columnid"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_columnid"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["_columnid"] = arg1
+	var arg2 model.NewCustomField
+	if tmp, ok := rawArgs["_CustomField"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_CustomField"))
+		arg2, err = ec.unmarshalNNewCustomField2githubᚗcomᚋdeyr02ᚋcrm_mongo_graphqlᚋgraphᚋmodelᚐNewCustomField(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["_CustomField"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addColumn_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["_id"] = arg0
+	var arg1 model.NewCustomField
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNNewCustomField2githubᚗcomᚋdeyr02ᚋcrm_mongo_graphqlᚋgraphᚋmodelᚐNewCustomField(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createTable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -848,6 +1013,8 @@ func (ec *executionContext) fieldContext_Mutation_createTable(ctx context.Contex
 			switch field.Name {
 			case "TableID":
 				return ec.fieldContext_Table_TableID(ctx, field)
+			case "TableName":
+				return ec.fieldContext_Table_TableName(ctx, field)
 			case "Fields":
 				return ec.fieldContext_Table_Fields(ctx, field)
 			}
@@ -862,6 +1029,258 @@ func (ec *executionContext) fieldContext_Mutation_createTable(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_DeleteTable(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_DeleteTable(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteTable(rctx, fc.Args["_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Table)
+	fc.Result = res
+	return ec.marshalNTable2ᚖgithubᚗcomᚋdeyr02ᚋcrm_mongo_graphqlᚋgraphᚋmodelᚐTable(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_DeleteTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "TableID":
+				return ec.fieldContext_Table_TableID(ctx, field)
+			case "TableName":
+				return ec.fieldContext_Table_TableName(ctx, field)
+			case "Fields":
+				return ec.fieldContext_Table_Fields(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Table", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_DeleteTable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addColumn(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addColumn(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddColumn(rctx, fc.Args["_id"].(string), fc.Args["input"].(model.NewCustomField))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Table)
+	fc.Result = res
+	return ec.marshalNTable2ᚖgithubᚗcomᚋdeyr02ᚋcrm_mongo_graphqlᚋgraphᚋmodelᚐTable(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addColumn(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "TableID":
+				return ec.fieldContext_Table_TableID(ctx, field)
+			case "TableName":
+				return ec.fieldContext_Table_TableName(ctx, field)
+			case "Fields":
+				return ec.fieldContext_Table_Fields(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Table", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addColumn_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_DeleteColumn(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_DeleteColumn(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteColumn(rctx, fc.Args["_tableid"].(string), fc.Args["_columnid"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Table)
+	fc.Result = res
+	return ec.marshalNTable2ᚖgithubᚗcomᚋdeyr02ᚋcrm_mongo_graphqlᚋgraphᚋmodelᚐTable(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_DeleteColumn(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "TableID":
+				return ec.fieldContext_Table_TableID(ctx, field)
+			case "TableName":
+				return ec.fieldContext_Table_TableName(ctx, field)
+			case "Fields":
+				return ec.fieldContext_Table_Fields(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Table", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_DeleteColumn_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_ModifyColumn(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_ModifyColumn(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ModifyColumn(rctx, fc.Args["_tableid"].(string), fc.Args["_columnid"].(string), fc.Args["_CustomField"].(model.NewCustomField))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Table)
+	fc.Result = res
+	return ec.marshalNTable2ᚖgithubᚗcomᚋdeyr02ᚋcrm_mongo_graphqlᚋgraphᚋmodelᚐTable(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_ModifyColumn(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "TableID":
+				return ec.fieldContext_Table_TableID(ctx, field)
+			case "TableName":
+				return ec.fieldContext_Table_TableName(ctx, field)
+			case "Fields":
+				return ec.fieldContext_Table_Fields(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Table", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_ModifyColumn_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -909,6 +1328,8 @@ func (ec *executionContext) fieldContext_Query_table(ctx context.Context, field 
 			switch field.Name {
 			case "TableID":
 				return ec.fieldContext_Table_TableID(ctx, field)
+			case "TableName":
+				return ec.fieldContext_Table_TableName(ctx, field)
 			case "Fields":
 				return ec.fieldContext_Table_Fields(ctx, field)
 			}
@@ -970,6 +1391,8 @@ func (ec *executionContext) fieldContext_Query_tables(ctx context.Context, field
 			switch field.Name {
 			case "TableID":
 				return ec.fieldContext_Table_TableID(ctx, field)
+			case "TableName":
+				return ec.fieldContext_Table_TableName(ctx, field)
 			case "Fields":
 				return ec.fieldContext_Table_Fields(ctx, field)
 			}
@@ -1147,6 +1570,50 @@ func (ec *executionContext) fieldContext_Table_TableID(ctx context.Context, fiel
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Table_TableName(ctx context.Context, field graphql.CollectedField, obj *model.Table) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Table_TableName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TableName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Table_TableName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Table",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3074,6 +3541,14 @@ func (ec *executionContext) unmarshalInputNewTable(ctx context.Context, obj inte
 
 	for k, v := range asMap {
 		switch k {
+		case "TableName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("TableName"))
+			it.TableName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "Fields":
 			var err error
 
@@ -3208,6 +3683,42 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "DeleteTable":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_DeleteTable(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addColumn":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addColumn(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "DeleteColumn":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_DeleteColumn(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "ModifyColumn":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_ModifyColumn(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3320,6 +3831,13 @@ func (ec *executionContext) _Table(ctx context.Context, sel ast.SelectionSet, ob
 		case "TableID":
 
 			out.Values[i] = ec._Table_TableID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "TableName":
+
+			out.Values[i] = ec._Table_TableName(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -3710,6 +4228,11 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNNewCustomField2githubᚗcomᚋdeyr02ᚋcrm_mongo_graphqlᚋgraphᚋmodelᚐNewCustomField(ctx context.Context, v interface{}) (model.NewCustomField, error) {
+	res, err := ec.unmarshalInputNewCustomField(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNNewCustomField2ᚖgithubᚗcomᚋdeyr02ᚋcrm_mongo_graphqlᚋgraphᚋmodelᚐNewCustomField(ctx context.Context, v interface{}) (*model.NewCustomField, error) {
