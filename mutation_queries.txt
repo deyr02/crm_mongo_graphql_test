@@ -187,3 +187,17 @@ mutation DeleteColumn{
     }
   }
 }
+
+
+addData :
+
+mutation addData{
+  AddData(_collectionName:"User", data:"{\"firstName\":\"Shaon\",\"LastName\":\"Saha\",\"Age\":32}")
+}
+
+
+GetAllData: 
+
+query getAllData{
+  GetAllData(_collectionName:"User")
+}

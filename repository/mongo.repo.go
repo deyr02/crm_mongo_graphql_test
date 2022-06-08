@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -22,6 +23,7 @@ type TableRepository interface {
 	ModifyTableColumn(tableid string, columnid string, newCustomeField *model.NewCustomField) *model.Table
 
 	AddData(_collectionName string, data string) *string
+	GetAllData(_collectionName string) []*string
 }
 
 const (
@@ -201,4 +203,45 @@ func (db *database) AddData(_collectionName string, data string) *string {
 		log.Fatal(_err)
 	}
 	return &data
+}
+
+func (db *database) GetAllData(_collectionName string) []*string {
+	collection := db.client.Database(DATABASE).Collection(_collectionName)
+	cursor, err := collection.Find(context.TODO(), bson.D{})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer cursor.Close(context.TODO())
+	var result []*string
+	// for cursor.Next(context.TODO()) {
+	// 	var cus *interface{}
+	// 	err := cursor.Decode(&cus)
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// 	b, _err := json.Marshal(cus)
+	// 	if _err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// 	S := string(b)
+
+	for cursor.Next(context.TODO()) {
+		var cus *interface{}
+		err := cursor.Decode(&cus)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		b, _err := json.Marshal(cus)
+		if _err != nil {
+			log.Fatal(err)
+		}
+		S := cursor.Current.String()
+		fmt.Println(b)
+		result = append(result, &S)
+	}
+	return result
 }

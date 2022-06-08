@@ -46,6 +46,7 @@ input NewTable{
 type Query{
   table(_id: String!): Table!
   tables: [Table!]!
+  GetAllData(_collectionName: String!):[String]!
 }
 
 type Mutation{
