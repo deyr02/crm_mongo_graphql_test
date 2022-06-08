@@ -33,11 +33,15 @@ type Table{
    
 }
 
+
 input NewTable{ 
     TableName: String!				
     Fields: [NewCustomField!]
 
 }
+
+
+
 
 type Query{
   table(_id: String!): Table!
@@ -50,4 +54,9 @@ type Mutation{
   addColumn(_id:String!, input:NewCustomField!): Table!
   DeleteColumn(_tableid: String!, _columnid:String!): Table!
   ModifyColumn(_tableid: String!, _columnid: String!, input:NewCustomField!): Table!
+
+  AddData(_collectionName: String!, data: String!):String
+
+
+
 }

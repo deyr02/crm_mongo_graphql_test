@@ -20,6 +20,8 @@ type TableRepository interface {
 	DeleteTable(id string) *model.Table
 	DeleteTableColumn(tableid string, columnid string) *model.Table
 	ModifyTableColumn(tableid string, columnid string, newCustomeField *model.NewCustomField) *model.Table
+
+	AddData(_collectionName string, data string) *string
 }
 
 const (
@@ -181,4 +183,22 @@ func (db *database) ModifyTableColumn(tableid string, columnid string, newCustom
 		log.Fatal(err)
 	}
 	return table
+}
+
+func (db *database) AddData(_collectionName string, data string) *string {
+	collection := db.client.Database(DATABASE).Collection(_collectionName)
+
+	var bdoc interface{}
+	fmt.Println(data)
+	err := bson.UnmarshalExtJSON([]byte(data), true, &bdoc)
+	if err != nil {
+		panic(err)
+	}
+
+	_, _err := collection.InsertOne(context.TODO(), bdoc)
+
+	if _err != nil {
+		log.Fatal(_err)
+	}
+	return &data
 }

@@ -58,10 +58,11 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddColumn    func(childComplexity int, id string, input model.NewCustomField) int
+		AddData      func(childComplexity int, collectionName string, data string) int
 		CreateTable  func(childComplexity int, input model.NewTable) int
 		DeleteColumn func(childComplexity int, tableid string, columnid string) int
 		DeleteTable  func(childComplexity int, id string) int
-		ModifyColumn func(childComplexity int, tableid string, columnid string, customField model.NewCustomField) int
+		ModifyColumn func(childComplexity int, tableid string, columnid string, input model.NewCustomField) int
 	}
 
 	Query struct {
@@ -81,7 +82,8 @@ type MutationResolver interface {
 	DeleteTable(ctx context.Context, id string) (*model.Table, error)
 	AddColumn(ctx context.Context, id string, input model.NewCustomField) (*model.Table, error)
 	DeleteColumn(ctx context.Context, tableid string, columnid string) (*model.Table, error)
-	ModifyColumn(ctx context.Context, tableid string, columnid string, customField model.NewCustomField) (*model.Table, error)
+	ModifyColumn(ctx context.Context, tableid string, columnid string, input model.NewCustomField) (*model.Table, error)
+	AddData(ctx context.Context, collectionName string, data string) (*string, error)
 }
 type QueryResolver interface {
 	Table(ctx context.Context, id string) (*model.Table, error)
@@ -178,6 +180,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddColumn(childComplexity, args["_id"].(string), args["input"].(model.NewCustomField)), true
 
+	case "Mutation.AddData":
+		if e.complexity.Mutation.AddData == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_AddData_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddData(childComplexity, args["_collectionName"].(string), args["data"].(string)), true
+
 	case "Mutation.createTable":
 		if e.complexity.Mutation.CreateTable == nil {
 			break
@@ -224,7 +238,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ModifyColumn(childComplexity, args["_tableid"].(string), args["_columnid"].(string), args["_CustomField"].(model.NewCustomField)), true
+		return e.complexity.Mutation.ModifyColumn(childComplexity, args["_tableid"].(string), args["_columnid"].(string), args["input"].(model.NewCustomField)), true
 
 	case "Query.table":
 		if e.complexity.Query.Table == nil {
@@ -371,11 +385,15 @@ type Table{
    
 }
 
+
 input NewTable{ 
     TableName: String!				
     Fields: [NewCustomField!]
 
 }
+
+
+
 
 type Query{
   table(_id: String!): Table!
@@ -387,7 +405,12 @@ type Mutation{
   DeleteTable(_id: String!):Table!
   addColumn(_id:String!, input:NewCustomField!): Table!
   DeleteColumn(_tableid: String!, _columnid:String!): Table!
-  ModifyColumn(_tableid: String!, _columnid: String!, _CustomField:NewCustomField!): Table!
+  ModifyColumn(_tableid: String!, _columnid: String!, input:NewCustomField!): Table!
+
+  AddData(_collectionName: String!, data: String!):String
+
+
+
 }
 `, BuiltIn: false},
 }
@@ -396,6 +419,30 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_AddData_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["_collectionName"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_collectionName"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["_collectionName"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["data"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("data"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["data"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_DeleteColumn_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -458,14 +505,14 @@ func (ec *executionContext) field_Mutation_ModifyColumn_args(ctx context.Context
 	}
 	args["_columnid"] = arg1
 	var arg2 model.NewCustomField
-	if tmp, ok := rawArgs["_CustomField"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_CustomField"))
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg2, err = ec.unmarshalNNewCustomField2githubᚗcomᚋdeyr02ᚋcrm_mongo_graphqlᚋgraphᚋmodelᚐNewCustomField(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["_CustomField"] = arg2
+	args["input"] = arg2
 	return args, nil
 }
 
@@ -1238,7 +1285,7 @@ func (ec *executionContext) _Mutation_ModifyColumn(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ModifyColumn(rctx, fc.Args["_tableid"].(string), fc.Args["_columnid"].(string), fc.Args["_CustomField"].(model.NewCustomField))
+		return ec.resolvers.Mutation().ModifyColumn(rctx, fc.Args["_tableid"].(string), fc.Args["_columnid"].(string), fc.Args["input"].(model.NewCustomField))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1281,6 +1328,58 @@ func (ec *executionContext) fieldContext_Mutation_ModifyColumn(ctx context.Conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_ModifyColumn_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_AddData(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_AddData(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddData(rctx, fc.Args["_collectionName"].(string), fc.Args["data"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_AddData(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_AddData_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -3719,6 +3818,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "AddData":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_AddData(ctx, field)
+			})
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

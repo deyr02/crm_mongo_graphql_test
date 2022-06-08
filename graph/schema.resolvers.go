@@ -81,6 +81,10 @@ func (r *queryResolver) Tables(ctx context.Context) ([]*model.Table, error) {
 	return tableRepo.FindAll(), nil
 }
 
+func (r *mutationResolver) AddData(ctx context.Context, collectionName string, data string) (*string, error) {
+	return tableRepo.AddData(collectionName, data), nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
