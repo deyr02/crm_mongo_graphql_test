@@ -2,10 +2,10 @@ package graph
 
 // This file will be automatically regenerated based on the schema, any resolver implementations
 // will be copied through when generating and any unknown code will be moved to the end.
-
 import (
 	"context"
 	"math/rand"
+
 	"strconv"
 
 	"github.com/deyr02/crm_mongo_graphql/graph/generated"
@@ -87,6 +87,14 @@ func (r *mutationResolver) AddData(ctx context.Context, collectionName string, d
 
 func (r *queryResolver) GetAllData(ctx context.Context, collectionName string) ([]*string, error) {
 	return tableRepo.GetAllData(collectionName), nil
+}
+
+func (r *queryResolver) GetData(ctx context.Context, collectionName string, query string) ([]*string, error) {
+	return tableRepo.GetData(collectionName, query), nil
+}
+
+func (r *queryResolver) GetFilteredData(ctx context.Context, collectionName string, query []*model.QueryMaker) ([]*string, error) {
+	return tableRepo.GetFilteredData(collectionName, query), nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

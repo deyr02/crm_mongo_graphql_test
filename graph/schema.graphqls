@@ -40,13 +40,19 @@ input NewTable{
 
 }
 
-
+input QueryMaker{
+  queryField: String!
+  queryString: String!
+}
 
 
 type Query{
   table(_id: String!): Table!
   tables: [Table!]!
   GetAllData(_collectionName: String!):[String]!
+  getData(_collectionName: String!, Query: String!): [String]!
+
+  getFilteredData(_collectionName: String!, Query: [QueryMaker!]): [String]!
 }
 
 type Mutation{

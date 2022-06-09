@@ -1,3 +1,7 @@
+bson querylinks:
+https://www.mongodb.com/docs/drivers/go/current/fundamentals/crud/read-operations/query-document/#std-label-golang-query-document
+
+
 AddTable:
 
 
@@ -200,4 +204,29 @@ GetAllData:
 
 query getAllData{
   GetAllData(_collectionName:"User")
+}
+
+
+
+getdata:
+
+query getData{
+  getData(_collectionName:"User", Query: "{\"LastName\": \"Saha\", \"firstName\":\"Shaon\"}")
+}
+
+
+getFilteredData:
+
+query getFilteredData{
+  getFilteredData(_collectionName:"User", Query:[
+    {queryField:"LastName",queryString:"{\"$eq\": \"Dey\"}"}
+  ])
+}
+
+
+
+getFitleredData: (multiple condition)
+
+query getData{
+  getData(_collectionName:"User", Query: "{\"LastName\": \"Saha\", \"Score\":{\"$gt\": 30}}")
 }

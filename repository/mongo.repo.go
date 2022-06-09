@@ -24,6 +24,8 @@ type TableRepository interface {
 
 	AddData(_collectionName string, data string) *string
 	GetAllData(_collectionName string) []*string
+	GetData(_collectionName string, query string) []*string
+	GetFilteredData(_collectionName string, query []*model.QueryMaker) []*string
 }
 
 const (
@@ -191,7 +193,6 @@ func (db *database) AddData(_collectionName string, data string) *string {
 	collection := db.client.Database(DATABASE).Collection(_collectionName)
 
 	var bdoc interface{}
-	fmt.Println(data)
 	err := bson.UnmarshalExtJSON([]byte(data), true, &bdoc)
 	if err != nil {
 		panic(err)
@@ -215,33 +216,68 @@ func (db *database) GetAllData(_collectionName string) []*string {
 
 	defer cursor.Close(context.TODO())
 	var result []*string
-	// for cursor.Next(context.TODO()) {
-	// 	var cus *interface{}
-	// 	err := cursor.Decode(&cus)
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	b, _err := json.Marshal(cus)
-	// 	if _err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	S := string(b)
-
 	for cursor.Next(context.TODO()) {
-		var cus *interface{}
-		err := cursor.Decode(&cus)
 
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		b, _err := json.Marshal(cus)
-		if _err != nil {
-			log.Fatal(err)
-		}
 		S := cursor.Current.String()
-		fmt.Println(b)
 		result = append(result, &S)
 	}
 	return result
+}
+
+func (db *database) GetData(_collectionName string, query string) []*string {
+	collection := db.client.Database(DATABASE).Collection(_collectionName)
+
+	var bdoc interface{}
+	err := bson.UnmarshalExtJSON([]byte(query), true, &bdoc)
+	if err != nil {
+		panic(err)
+	}
+
+	cursor, err := collection.Find(context.TODO(), &bdoc)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer cursor.Close(context.TODO())
+	var result []*string
+	for cursor.Next(context.TODO()) {
+
+		S := cursor.Current.String()
+		result = append(result, &S)
+	}
+	return result
+}
+
+func (db *database) GetFilteredData(_collectionName string, query []*model.QueryMaker) []*string {
+	collection := db.client.Database(DATABASE).Collection(_collectionName)
+
+	var filter bson.M
+
+	if len(query) != 0 {
+		if len(query) <= 1 {
+			var bsonMap bson.M
+			err := json.Unmarshal([]byte(query[0].QueryString), &bsonMap)
+			if err != nil {
+				panic(err)
+			}
+			filter = bson.M{query[0].QueryField: bsonMap}
+		}
+	}
+
+	cursor, err := collection.Find(context.TODO(), filter)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer cursor.Close(context.TODO())
+	var result []*string
+	for cursor.Next(context.TODO()) {
+
+		S := cursor.Current.String()
+		result = append(result, &S)
+	}
+	return result
+
 }

@@ -30,6 +30,11 @@ type NewTable struct {
 	Fields    []*NewCustomField `json:"Fields"`
 }
 
+type QueryMaker struct {
+	QueryField  string `json:"queryField"`
+	QueryString string `json:"queryString"`
+}
+
 type Table struct {
 	TableID   string         `json:"TableID"`
 	TableName string         `json:"TableName"`

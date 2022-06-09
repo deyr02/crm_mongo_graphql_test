@@ -66,9 +66,11 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetAllData func(childComplexity int, collectionName string) int
-		Table      func(childComplexity int, id string) int
-		Tables     func(childComplexity int) int
+		GetAllData      func(childComplexity int, collectionName string) int
+		GetData         func(childComplexity int, collectionName string, query string) int
+		GetFilteredData func(childComplexity int, collectionName string, query []*model.QueryMaker) int
+		Table           func(childComplexity int, id string) int
+		Tables          func(childComplexity int) int
 	}
 
 	Table struct {
@@ -90,6 +92,8 @@ type QueryResolver interface {
 	Table(ctx context.Context, id string) (*model.Table, error)
 	Tables(ctx context.Context) ([]*model.Table, error)
 	GetAllData(ctx context.Context, collectionName string) ([]*string, error)
+	GetData(ctx context.Context, collectionName string, query string) ([]*string, error)
+	GetFilteredData(ctx context.Context, collectionName string, query []*model.QueryMaker) ([]*string, error)
 }
 
 type executableSchema struct {
@@ -254,6 +258,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetAllData(childComplexity, args["_collectionName"].(string)), true
 
+	case "Query.getData":
+		if e.complexity.Query.GetData == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getData_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetData(childComplexity, args["_collectionName"].(string), args["Query"].(string)), true
+
+	case "Query.getFilteredData":
+		if e.complexity.Query.GetFilteredData == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getFilteredData_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetFilteredData(childComplexity, args["_collectionName"].(string), args["Query"].([]*model.QueryMaker)), true
+
 	case "Query.table":
 		if e.complexity.Query.Table == nil {
 			break
@@ -304,6 +332,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputNewCustomField,
 		ec.unmarshalInputNewTable,
+		ec.unmarshalInputQueryMaker,
 	)
 	first := true
 
@@ -406,13 +435,19 @@ input NewTable{
 
 }
 
-
+input QueryMaker{
+  queryField: String!
+  queryString: String!
+}
 
 
 type Query{
   table(_id: String!): Table!
   tables: [Table!]!
   GetAllData(_collectionName: String!):[String]!
+  getData(_collectionName: String!, Query: String!): [String]!
+
+  getFilteredData(_collectionName: String!, Query: [QueryMaker!]): [String]!
 }
 
 type Mutation{
@@ -597,6 +632,54 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getData_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["_collectionName"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_collectionName"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["_collectionName"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["Query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Query"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Query"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getFilteredData_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["_collectionName"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_collectionName"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["_collectionName"] = arg0
+	var arg1 []*model.QueryMaker
+	if tmp, ok := rawArgs["Query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Query"))
+		arg1, err = ec.unmarshalOQueryMaker2ᚕᚖgithubᚗcomᚋdeyr02ᚋcrm_mongo_graphqlᚋgraphᚋmodelᚐQueryMakerᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Query"] = arg1
 	return args, nil
 }
 
@@ -1580,6 +1663,116 @@ func (ec *executionContext) fieldContext_Query_GetAllData(ctx context.Context, f
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_GetAllData_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getData(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getData(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetData(rctx, fc.Args["_collectionName"].(string), fc.Args["Query"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getData(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getData_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getFilteredData(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getFilteredData(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetFilteredData(rctx, fc.Args["_collectionName"].(string), fc.Args["Query"].([]*model.QueryMaker))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getFilteredData(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getFilteredData_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -3747,6 +3940,37 @@ func (ec *executionContext) unmarshalInputNewTable(ctx context.Context, obj inte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputQueryMaker(ctx context.Context, obj interface{}) (model.QueryMaker, error) {
+	var it model.QueryMaker
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "queryField":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("queryField"))
+			it.QueryField, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "queryString":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("queryString"))
+			it.QueryString, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -3995,6 +4219,52 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_GetAllData(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getData":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getData(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getFilteredData":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getFilteredData(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -4458,6 +4728,11 @@ func (ec *executionContext) unmarshalNNewTable2githubᚗcomᚋdeyr02ᚋcrm_mongo
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNQueryMaker2ᚖgithubᚗcomᚋdeyr02ᚋcrm_mongo_graphqlᚋgraphᚋmodelᚐQueryMaker(ctx context.Context, v interface{}) (*model.QueryMaker, error) {
+	res, err := ec.unmarshalInputQueryMaker(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4896,6 +5171,26 @@ func (ec *executionContext) unmarshalONewCustomField2ᚕᚖgithubᚗcomᚋdeyr02
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
 		res[i], err = ec.unmarshalNNewCustomField2ᚖgithubᚗcomᚋdeyr02ᚋcrm_mongo_graphqlᚋgraphᚋmodelᚐNewCustomField(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOQueryMaker2ᚕᚖgithubᚗcomᚋdeyr02ᚋcrm_mongo_graphqlᚋgraphᚋmodelᚐQueryMakerᚄ(ctx context.Context, v interface{}) ([]*model.QueryMaker, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.QueryMaker, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNQueryMaker2ᚖgithubᚗcomᚋdeyr02ᚋcrm_mongo_graphqlᚋgraphᚋmodelᚐQueryMaker(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
