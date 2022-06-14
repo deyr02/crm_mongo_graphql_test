@@ -1,6 +1,8 @@
 bson querylinks:
 https://www.mongodb.com/docs/drivers/go/current/fundamentals/crud/read-operations/query-document/#std-label-golang-query-document
 
+query notes: 
+https://www.mongodb.com/docs/manual/tutorial/query-documents/
 
 AddTable:
 
@@ -230,3 +232,6 @@ getFitleredData: (multiple condition)
 query getData{
   getData(_collectionName:"User", Query: "{\"LastName\": \"Saha\", \"Score\":{\"$gt\": 30}}")
 }
+
+query getData{
+  getData(_collectionName:"User", Query: "{\"$and\":[{\"LastName\": \"Saha\"},{\"Age\":{\"$eq\":32}}]}")
