@@ -1,29 +1,49 @@
 # GraphQL schema example
 #
 # https://gqlgen.com/getting-started/
+enum FieldType{
+  TextBox
+  RadioButtons
+  CheckBox
+  CheckBoxes
+  DropDownList
+  InputFile
+  DatePicker
+  DateTimePicker
 
+}
+
+enum DataType{
+  Boolean
+  Date
+  Double
+  Integer
+  String
+}
 
 type CustomField{
   FieldID: ID!
   FieldName: String!
-	DataType: String!
-	Value: String!
+	DataType: DataType!
+  FieldType: FieldType!
+  IsRequired: Boolean!
+  Visibility: Boolean!
   MaxValue: Int!
   MinValue: Int!
   DefaultValue: String!
-  IsRequired: Boolean!
-  Visibility: Boolean!
+  PossibleValues: [String]
 }
 
 input NewCustomField{
   FieldName: String!
-  DataType: String!
-	Value: String!
-   MaxValue: Int!
-  MinValue: Int!
-  DefaultValue: String!
+	DataType: DataType!
+  FieldType: FieldType!
   IsRequired: Boolean!
   Visibility: Boolean!
+  MaxValue: Int!
+  MinValue: Int!
+  DefaultValue: String!
+  PossibleValues: [String]
 }
 
 type Table{
@@ -40,10 +60,30 @@ input NewTable{
 
 }
 
-input QueryMaker{
-  queryField: String!
-  queryString: String!
+
+type FieldValue{
+  key: String!
+  DataType: DataType!
+  value: String!
 }
+
+input NewFieldValue{
+  key: String!
+  DataType: DataType!
+  value: String!
+}
+
+
+type Record{
+  RecordID: ID!
+  data: [FieldValue!]
+  
+}
+
+input NewRecord{
+  data: [NewFieldValue!]!
+}
+
 
 
 type Query{
@@ -52,7 +92,6 @@ type Query{
   GetAllData(_collectionName: String!):[String]!
   getData(_collectionName: String!, Query: String!): [String]!
 
-  getFilteredData(_collectionName: String!, Query: [QueryMaker!]): [String]!
 }
 
 type Mutation{
@@ -64,6 +103,6 @@ type Mutation{
 
   AddData(_collectionName: String!, data: String!):String
 
-
+  SaveData(_collectionName:String!, input: NewRecord): Record
 
 }

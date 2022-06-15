@@ -5,7 +5,6 @@ package graph
 import (
 	"context"
 	"math/rand"
-
 	"strconv"
 
 	"github.com/deyr02/crm_mongo_graphql/graph/generated"
@@ -17,15 +16,16 @@ var tableRepo repository.TableRepository = repository.New()
 
 func (r *mutationResolver) AddColumn(ctx context.Context, id string, input model.NewCustomField) (*model.Table, error) {
 	column := &model.CustomField{
-		FieldID:      strconv.Itoa(rand.Int()),
-		FieldName:    input.FieldName,
-		DataType:     input.DataType,
-		Value:        input.Value,
-		MaxValue:     input.MaxValue,
-		MinValue:     input.MinValue,
-		DefaultValue: input.DefaultValue,
-		IsRequired:   input.IsRequired,
-		Visibility:   input.Visibility,
+		FieldID:        strconv.Itoa(rand.Int()),
+		FieldName:      input.FieldName,
+		DataType:       input.DataType,
+		FieldType:      input.FieldType,
+		MaxValue:       input.MaxValue,
+		MinValue:       input.MinValue,
+		DefaultValue:   input.DefaultValue,
+		IsRequired:     input.IsRequired,
+		Visibility:     input.Visibility,
+		PossibleValues: input.PossibleValues,
 	}
 	return tableRepo.AddColumn(id, column), nil
 
@@ -45,15 +45,16 @@ func (r *mutationResolver) CreateTable(ctx context.Context, input model.NewTable
 
 	for _, element := range input.Fields {
 		ele := &model.CustomField{
-			FieldID:      strconv.Itoa(rand.Int()),
-			FieldName:    element.FieldName,
-			DataType:     element.DataType,
-			Value:        element.Value,
-			MaxValue:     element.MaxValue,
-			MinValue:     element.MinValue,
-			DefaultValue: element.DefaultValue,
-			IsRequired:   element.IsRequired,
-			Visibility:   element.Visibility,
+			FieldID:        strconv.Itoa(rand.Int()),
+			FieldName:      element.FieldName,
+			DataType:       element.DataType,
+			FieldType:      element.FieldType,
+			MaxValue:       element.MaxValue,
+			MinValue:       element.MinValue,
+			DefaultValue:   element.DefaultValue,
+			IsRequired:     element.IsRequired,
+			Visibility:     element.Visibility,
+			PossibleValues: element.PossibleValues,
 		}
 
 		customFields = append(customFields, ele)
@@ -93,8 +94,26 @@ func (r *queryResolver) GetData(ctx context.Context, collectionName string, quer
 	return tableRepo.GetData(collectionName, query), nil
 }
 
-func (r *queryResolver) GetFilteredData(ctx context.Context, collectionName string, query []*model.QueryMaker) ([]*string, error) {
-	return tableRepo.GetFilteredData(collectionName, query), nil
+func (r *mutationResolver) SaveData(ctx context.Context, collectionName string, input *model.NewRecord) (*model.Record, error) {
+	var fieldValues []*model.FieldValue
+
+	for _, element := range input.Data {
+		ele := &model.FieldValue{
+			Key:      element.Key,
+			DataType: element.DataType,
+			Value:    element.Value,
+		}
+
+		fieldValues = append(fieldValues, ele)
+	}
+
+	rec := &model.Record{
+		RecordID: strconv.Itoa(rand.Int()),
+		Data:     fieldValues,
+	}
+
+	tableRepo.SaveData(collectionName, rec)
+	return rec, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

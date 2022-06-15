@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -23,13 +22,13 @@ type TableRepository interface {
 	ModifyTableColumn(tableid string, columnid string, newCustomeField *model.NewCustomField) *model.Table
 
 	AddData(_collectionName string, data string) *string
+	SaveData(_collectionName string, data *model.Record)
 	GetAllData(_collectionName string) []*string
 	GetData(_collectionName string, query string) []*string
-	GetFilteredData(_collectionName string, query []*model.QueryMaker) []*string
 }
 
 const (
-	DATABASE   = "BNZL_CRM"
+	DATABASE   = "BNZL_CRM_test_1"
 	COLLECTION = "Tables"
 )
 
@@ -172,7 +171,6 @@ func (db *database) ModifyTableColumn(tableid string, columnid string, newCustom
 		if table.Fields[i].FieldID == columnid {
 			table.Fields[i].FieldName = newCustomeField.FieldName
 			table.Fields[i].DataType = newCustomeField.DataType
-			table.Fields[i].Value = newCustomeField.Value
 			table.Fields[i].MaxValue = newCustomeField.MaxValue
 			table.Fields[i].MaxValue = newCustomeField.MinValue
 			table.Fields[i].DefaultValue = newCustomeField.DefaultValue
@@ -249,35 +247,11 @@ func (db *database) GetData(_collectionName string, query string) []*string {
 	return result
 }
 
-func (db *database) GetFilteredData(_collectionName string, query []*model.QueryMaker) []*string {
+func (db *database) SaveData(_collectionName string, data *model.Record) {
 	collection := db.client.Database(DATABASE).Collection(_collectionName)
-
-	var filter bson.M
-
-	if len(query) != 0 {
-		if len(query) <= 1 {
-			var bsonMap bson.M
-			err := json.Unmarshal([]byte(query[0].QueryString), &bsonMap)
-			if err != nil {
-				panic(err)
-			}
-			filter = bson.M{query[0].QueryField: bsonMap}
-		}
-	}
-
-	cursor, err := collection.Find(context.TODO(), filter)
+	_, err := collection.InsertOne(context.TODO(), data)
 
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	defer cursor.Close(context.TODO())
-	var result []*string
-	for cursor.Next(context.TODO()) {
-
-		S := cursor.Current.String()
-		result = append(result, &S)
-	}
-	return result
-
 }

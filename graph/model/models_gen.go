@@ -2,27 +2,51 @@
 
 package model
 
+import (
+	"fmt"
+	"io"
+	"strconv"
+)
+
 type CustomField struct {
-	FieldID      string `json:"FieldID"`
-	FieldName    string `json:"FieldName"`
-	DataType     string `json:"DataType"`
-	Value        string `json:"Value"`
-	MaxValue     int    `json:"MaxValue"`
-	MinValue     int    `json:"MinValue"`
-	DefaultValue string `json:"DefaultValue"`
-	IsRequired   bool   `json:"IsRequired"`
-	Visibility   bool   `json:"Visibility"`
+	FieldID        string    `json:"FieldID"`
+	FieldName      string    `json:"FieldName"`
+	DataType       DataType  `json:"DataType"`
+	FieldType      FieldType `json:"FieldType"`
+	IsRequired     bool      `json:"IsRequired"`
+	Visibility     bool      `json:"Visibility"`
+	MaxValue       int       `json:"MaxValue"`
+	MinValue       int       `json:"MinValue"`
+	DefaultValue   string    `json:"DefaultValue"`
+	PossibleValues []*string `json:"PossibleValues"`
+}
+
+type FieldValue struct {
+	Key      string   `json:"key"`
+	DataType DataType `json:"DataType"`
+	Value    string   `json:"value"`
 }
 
 type NewCustomField struct {
-	FieldName    string `json:"FieldName"`
-	DataType     string `json:"DataType"`
-	Value        string `json:"Value"`
-	MaxValue     int    `json:"MaxValue"`
-	MinValue     int    `json:"MinValue"`
-	DefaultValue string `json:"DefaultValue"`
-	IsRequired   bool   `json:"IsRequired"`
-	Visibility   bool   `json:"Visibility"`
+	FieldName      string    `json:"FieldName"`
+	DataType       DataType  `json:"DataType"`
+	FieldType      FieldType `json:"FieldType"`
+	IsRequired     bool      `json:"IsRequired"`
+	Visibility     bool      `json:"Visibility"`
+	MaxValue       int       `json:"MaxValue"`
+	MinValue       int       `json:"MinValue"`
+	DefaultValue   string    `json:"DefaultValue"`
+	PossibleValues []*string `json:"PossibleValues"`
+}
+
+type NewFieldValue struct {
+	Key      string   `json:"key"`
+	DataType DataType `json:"DataType"`
+	Value    string   `json:"value"`
+}
+
+type NewRecord struct {
+	Data []*NewFieldValue `json:"data"`
 }
 
 type NewTable struct {
@@ -30,13 +54,113 @@ type NewTable struct {
 	Fields    []*NewCustomField `json:"Fields"`
 }
 
-type QueryMaker struct {
-	QueryField  string `json:"queryField"`
-	QueryString string `json:"queryString"`
+type Record struct {
+	RecordID string        `json:"RecordID"`
+	Data     []*FieldValue `json:"data"`
 }
 
 type Table struct {
 	TableID   string         `json:"TableID"`
 	TableName string         `json:"TableName"`
 	Fields    []*CustomField `json:"Fields"`
+}
+
+type DataType string
+
+const (
+	DataTypeBoolean DataType = "Boolean"
+	DataTypeDate    DataType = "Date"
+	DataTypeDouble  DataType = "Double"
+	DataTypeInteger DataType = "Integer"
+	DataTypeString  DataType = "String"
+)
+
+var AllDataType = []DataType{
+	DataTypeBoolean,
+	DataTypeDate,
+	DataTypeDouble,
+	DataTypeInteger,
+	DataTypeString,
+}
+
+func (e DataType) IsValid() bool {
+	switch e {
+	case DataTypeBoolean, DataTypeDate, DataTypeDouble, DataTypeInteger, DataTypeString:
+		return true
+	}
+	return false
+}
+
+func (e DataType) String() string {
+	return string(e)
+}
+
+func (e *DataType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DataType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DataType", str)
+	}
+	return nil
+}
+
+func (e DataType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type FieldType string
+
+const (
+	FieldTypeTextBox        FieldType = "TextBox"
+	FieldTypeRadioButtons   FieldType = "RadioButtons"
+	FieldTypeCheckBox       FieldType = "CheckBox"
+	FieldTypeCheckBoxes     FieldType = "CheckBoxes"
+	FieldTypeDropDownList   FieldType = "DropDownList"
+	FieldTypeInputFile      FieldType = "InputFile"
+	FieldTypeDatePicker     FieldType = "DatePicker"
+	FieldTypeDateTimePicker FieldType = "DateTimePicker"
+)
+
+var AllFieldType = []FieldType{
+	FieldTypeTextBox,
+	FieldTypeRadioButtons,
+	FieldTypeCheckBox,
+	FieldTypeCheckBoxes,
+	FieldTypeDropDownList,
+	FieldTypeInputFile,
+	FieldTypeDatePicker,
+	FieldTypeDateTimePicker,
+}
+
+func (e FieldType) IsValid() bool {
+	switch e {
+	case FieldTypeTextBox, FieldTypeRadioButtons, FieldTypeCheckBox, FieldTypeCheckBoxes, FieldTypeDropDownList, FieldTypeInputFile, FieldTypeDatePicker, FieldTypeDateTimePicker:
+		return true
+	}
+	return false
+}
+
+func (e FieldType) String() string {
+	return string(e)
+}
+
+func (e *FieldType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FieldType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid FieldType", str)
+	}
+	return nil
+}
+
+func (e FieldType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
