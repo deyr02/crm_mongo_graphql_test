@@ -91,6 +91,7 @@ type Query{
   tables: [Table!]!
   GetAllData(_collectionName: String!):[String]!
   getData(_collectionName: String!, Query: String!): [String]!
+  getAllDatabyCollectionName(_collectionName: String!):[Record]!
 
 }
 

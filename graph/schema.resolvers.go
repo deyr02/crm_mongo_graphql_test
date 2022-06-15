@@ -114,6 +114,11 @@ func (r *mutationResolver) SaveData(ctx context.Context, collectionName string, 
 
 	tableRepo.SaveData(collectionName, rec)
 	return rec, nil
+
+}
+
+func (r *queryResolver) GetAllDatabyCollectionName(ctx context.Context, collectionName string) ([]*model.Record, error) {
+	return tableRepo.GetAllDataByCollectionName(collectionName), nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

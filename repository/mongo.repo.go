@@ -25,6 +25,7 @@ type TableRepository interface {
 	SaveData(_collectionName string, data *model.Record)
 	GetAllData(_collectionName string) []*string
 	GetData(_collectionName string, query string) []*string
+	GetAllDataByCollectionName(_collectionName string) []*model.Record
 }
 
 const (
@@ -254,4 +255,72 @@ func (db *database) SaveData(_collectionName string, data *model.Record) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+// func (db *database) SaveData(_collectionName string, data *model.Record) {
+// 	collection := db.client.Database(DATABASE).Collection(_collectionName)
+// 	elements := bson.D{}
+
+// 	elements = append(elements, bson.E{Key: "RecordID", Value: data.RecordID})
+// 	for _, element := range data.Data {
+
+// 		switch element.DataType {
+// 		case model.DataTypeInteger:
+// 			intvalue, err := strconv.Atoi(element.Value)
+// 			if err != nil {
+// 				panic(err)
+// 			}
+// 			elements = append(elements, bson.E{Key: element.Key, Value: intvalue})
+
+// 		case model.DataTypeString:
+// 			elements = append(elements, bson.E{Key: element.Key, Value: element.Value})
+
+// 		case model.DataTypeDate:
+// 			elements = append(elements, bson.E{Key: element.Key, Value: element.Value})
+
+// 		case model.DataTypeBoolean:
+// 			booleanvalue, err := strconv.ParseBool(element.Value)
+// 			if err != nil {
+// 				panic(err)
+// 			}
+// 			elements = append(elements, bson.E{Key: element.Key, Value: booleanvalue})
+
+// 		case model.DataTypeDouble:
+// 			doubleValue, err := strconv.ParseFloat(element.Value, 64)
+// 			if err != nil {
+// 				panic(err)
+// 			}
+// 			elements = append(elements, bson.E{Key: element.Key, Value: doubleValue})
+
+// 		}
+// 		//elements = append(elements, bson.E{Key: element.Key, Value: element.Value})
+
+// 	}
+
+// 	_, err := collection.InsertOne(context.TODO(), elements)
+
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// }
+
+func (db *database) GetAllDataByCollectionName(_collectionName string) []*model.Record {
+	collection := db.client.Database(DATABASE).Collection(_collectionName)
+	cursor, err := collection.Find(context.TODO(), bson.D{})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer cursor.Close(context.TODO())
+	var result []*model.Record
+	for cursor.Next(context.TODO()) {
+		var cus *model.Record
+		err := cursor.Decode(&cus)
+		if err != nil {
+			log.Fatal(err)
+		}
+		result = append(result, cus)
+	}
+	return result
 }
